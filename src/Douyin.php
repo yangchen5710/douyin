@@ -283,9 +283,9 @@ class Douyin
             if(!$result){
                 throw new InvalidResponseException('invalid response');
             }
-            $extra = $result['extra'];
-            if($extra['error_code'] != 0){
-                throw new InvalidResponseException($extra['description'], $extra['error_code']);
+            $data = $result['data'];
+            if($data['error_code'] != 0){
+                throw new InvalidResponseException($data['description'], $data['error_code']);
             }
             return $result;
 
