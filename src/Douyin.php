@@ -41,7 +41,7 @@ class Douyin
         $this->host = $config['host'];
         $this->key = $config['key'];
         $this->secret = $config['secret'];
-        $this->platformPublicKey = $config['platform_public_key'];
+        $this->platformPublicKey = $config['platform_public_key'] ?? '';
     }
 
     /**
