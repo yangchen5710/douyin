@@ -14,6 +14,8 @@ class Douyin
 
     protected $secret;
 
+    protected $platformPublicKey;
+
     protected $accessToken = '';
 
     protected $client;
@@ -39,6 +41,7 @@ class Douyin
         $this->host = $config['host'];
         $this->key = $config['key'];
         $this->secret = $config['secret'];
+        $this->platformPublicKey = $config['platform_public_key'];
     }
 
     /**
@@ -258,6 +261,26 @@ class Douyin
         return $result;
     }
 
+    /**
+     *
+     * @param array $params
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function postSkuOrder(array $params)
+    {
+        $this->setCurrentMethod(__FUNCTION__, func_get_args());
+        $result = $this->doRequest('get', '/apps/trade/v2/order/create_order', ['json' => $params]);
+        return $result;
+    }
+
+    public function refundSkuOrder($params)
+    {
+        $this->setCurrentMethod(__FUNCTION__, func_get_args());
+        $result = $this->doRequest('get', '/apps/trade/v2/refund/create_refund', ['json' => $params]);
+        return $result;
+    }
+
     private function setCurrentMethod($method, $arguments = [])
     {
         $this->currentMethod = ['method' => $method, 'arguments' => $arguments];
@@ -297,5 +320,13 @@ class Douyin
             }
             throw new InvalidResponseException($e->getMessage(), $e->getCode());
         }
+    }
+
+    public function verify($http_body, $timestamp, $nonce_str, $signStr)
+    {
+        $sign = new Sign();
+        $sign->setPublicKey($this->platformPublicKey);
+
+        return $sign->verifySignature($http_body, $timestamp, $nonce_str, $signStr);
     }
 }
