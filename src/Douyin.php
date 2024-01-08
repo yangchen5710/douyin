@@ -281,6 +281,13 @@ class Douyin
         return $result;
     }
 
+    public function syncRefundResut($params)
+    {
+        $this->setCurrentMethod(__FUNCTION__, func_get_args());
+        $result = $this->doRequest('get', '/apps/trade/v2/refund/merchant_audit_callback', ['json' => $params]);
+        return $result;
+    }
+
     private function setCurrentMethod($method, $arguments = [])
     {
         $this->currentMethod = ['method' => $method, 'arguments' => $arguments];
