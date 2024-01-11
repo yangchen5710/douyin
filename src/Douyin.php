@@ -315,7 +315,11 @@ class Douyin
             }
             $data = $result['data'];
             if($data['error_code'] != 0){
-                throw new InvalidResponseException($data['description'], $data['error_code']);
+                $errorDescription = $data['description'];
+                if(isset($data['extra'])){
+                    $errorDescription = $data['description'] . ' ' . $data['sub_description'];
+                }
+                throw new InvalidResponseException($errorDescription, $data['error_code']);
             }
             return $result;
 
