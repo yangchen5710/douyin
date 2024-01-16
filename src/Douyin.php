@@ -277,14 +277,14 @@ class Douyin
     public function refundSkuOrder($params)
     {
         $this->setCurrentMethod(__FUNCTION__, func_get_args());
-        $result = $this->doRequest('get', '/apps/trade/v2/refund/create_refund', ['json' => $params]);
+        $result = $this->doRequest('post', '/apps/trade/v2/refund/create_refund', ['json' => $params]);
         return $result;
     }
 
     public function syncRefundResut($params)
     {
         $this->setCurrentMethod(__FUNCTION__, func_get_args());
-        $result = $this->doRequest('get', '/apps/trade/v2/refund/merchant_audit_callback', ['json' => $params]);
+        $result = $this->doRequest('post', '/apps/trade/v2/refund/merchant_audit_callback', ['json' => $params]);
         return $result;
     }
 
