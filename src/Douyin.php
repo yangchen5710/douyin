@@ -18,23 +18,27 @@ class Douyin
 
     protected $accessToken = '';
 
+    protected $expiresIn = 7200;
+
     protected $client;
 
     protected $currentMethod = [];
 
     protected $isTry = false;
 
+    protected $isCache = true;
+
     public function __construct(array $config)
     {
-        if (empty($config['host'])) {
+        if (!isset($config['host'])) {
             throw new InvalidArgumentException("Missing Config -- [host]");
         }
 
-        if (empty($config['key'])) {
+        if (!isset($config['key'])) {
             throw new InvalidArgumentException("Missing Config -- [key]");
         }
 
-        if (empty($config['secret'])) {
+        if (!isset($config['secret'])) {
             throw new InvalidArgumentException("Missing Config -- [secret]");
         }
 
@@ -42,6 +46,10 @@ class Douyin
         $this->key = $config['key'];
         $this->secret = $config['secret'];
         $this->platformPublicKey = $config['platform_public_key'] ?? '';
+
+        if(isset($config['is_cache'])){
+            $this->isCache = $config['is_cache'];
+        }
     }
 
     /**
@@ -53,13 +61,18 @@ class Douyin
     public function getAccessToken()
     {
         if(!empty($this->accessToken)){
-            return $this->accessToken;
+            return ['access_token' => $this->accessToken, 'expires_in' => $this->expiresIn];
         }
-        $cache = $this->key . '_access_token';
-        $this->access_token = Tools::getCache($cache);
-        if (!empty($this->access_token)) {
-            return $this->access_token;
+        if($this->isCache){
+            $cache = $this->key . '_access_token';
+            $cacheInfo = Tools::getCache($cache);
+            if (!empty($cacheInfo)) {
+                $this->accessToken = $cacheInfo[0] ?? '';
+                $this->expiresIn = $cacheInfo[1] ?? 7200;
+                return ['access_token' => $this->accessToken, 'expires_in' => $this->expiresIn];
+            }
         }
+
         $response = $this->getHttpClient()->post('/oauth/client_token/', [
             'json' => [
                 'client_key' => $this->key,
@@ -72,10 +85,13 @@ class Douyin
         if ($data['error_code'] != 0){
             throw new InvalidResponseException($data['description'], $data['error_code']);
         }
-        if(!empty($data['access_token'])){
-            Tools::setCache($cache, $data['access_token'], 7000);
+
+        $this->accessToken = $data['access_token'];
+        $this->expiresIn = $data['expires_in'];
+        if($this->isCache && !empty($this->accessToken)){
+            Tools::setCache($cache, $this->accessToken, $this->expiresIn);
         }
-        return $this->accessToken = $data['access_token'];
+        return ['access_token' => $this->accessToken, 'expires_in' => $this->expiresIn];
     }
 
     /**
@@ -85,19 +101,27 @@ class Douyin
      * - 多用于分布式项目时保持 AccessToken 统一
      * - 使用此方法后就由用户来保证传入的 AccessToken 为有效 AccessToken
      */
-    public function setAccessToken(string $accessToken)
+    public function setAccessToken(string $accessToken, int $expiresIn = 7200)
     {
         if (!is_string($accessToken)) {
             throw new InvalidArgumentException("Invalid AccessToken type, need string.");
         }
-        $cache = $this->key . '_access_token';
-        Tools::setCache($cache, $this->access_token = $accessToken);
+        $this->accessToken = $accessToken;
+        $this->expiresIn = $expiresIn;
+        if($this->isCache){
+            $cache = $this->key . '_access_token';
+            Tools::setCache($cache, $accessToken, $expiresIn);
+        }
+
     }
 
     public function delAccessToken()
     {
-        $this->access_token = '';
-        return Tools::delCache($this->key . '_access_token');
+        $this->accessToken = '';
+        $this->expiresIn = 7200;
+        if($this->isCache){
+            Tools::delCache($this->key . '_access_token');
+        }
     }
 
     /**
@@ -304,8 +328,9 @@ class Douyin
     private function doRequest(string $method, $uri = '', array $options = [])
     {
         try {
+            $accessToken = $this->getAccessToken();
             $options['headers'] = [
-                'access-token' => $this->getAccessToken()
+                'access-token' => $accessToken['access_token'] ?? ''
             ];
             $response = $this->getHttpClient()->request($method, $uri, $options)->getBody()->getContents();
             $result = json_decode($response, true);

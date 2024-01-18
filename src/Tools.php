@@ -413,7 +413,7 @@ class Tools
         if (file_exists($file) && ($content = file_get_contents($file))) {
             $data = unserialize($content);
             if (isset($data['expired']) && (intval($data['expired']) === 0 || intval($data['expired']) >= time())) {
-                return $data['value'];
+                return [$data['value'], $data['expired']];
             }
             self::delCache($name);
         }
