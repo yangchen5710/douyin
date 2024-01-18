@@ -18,7 +18,7 @@ class Douyin
 
     protected $accessToken = '';
 
-    protected $expiresIn = 7200;
+    protected $expiresIn;
 
     protected $client;
 
@@ -68,7 +68,7 @@ class Douyin
             $cacheInfo = Tools::getCache($cache);
             if (!empty($cacheInfo)) {
                 $this->accessToken = $cacheInfo[0] ?? '';
-                $this->expiresIn = $cacheInfo[1] ?? 7200;
+                $this->expiresIn = $cacheInfo[1] ?? time();
                 return ['access_token' => $this->accessToken, 'expires_in' => $this->expiresIn];
             }
         }
@@ -87,9 +87,9 @@ class Douyin
         }
 
         $this->accessToken = $data['access_token'];
-        $this->expiresIn = $data['expires_in'];
+        $this->expiresIn = time() + intval($data['expires_in']);
         if($this->isCache && !empty($this->accessToken)){
-            Tools::setCache($cache, $this->accessToken, $this->expiresIn);
+            Tools::setCache($cache, $this->accessToken, $data['expires_in']);
         }
         return ['access_token' => $this->accessToken, 'expires_in' => $this->expiresIn];
     }
@@ -101,16 +101,19 @@ class Douyin
      * - 多用于分布式项目时保持 AccessToken 统一
      * - 使用此方法后就由用户来保证传入的 AccessToken 为有效 AccessToken
      */
-    public function setAccessToken(string $accessToken, int $expiresIn = 7200)
+    public function setAccessToken(string $accessToken, $expiresIn = null)
     {
         if (!is_string($accessToken)) {
             throw new InvalidArgumentException("Invalid AccessToken type, need string.");
         }
         $this->accessToken = $accessToken;
+        if(empty($expiresIn) || $expiresIn < time()){
+            $expiresIn = time();
+        }
         $this->expiresIn = $expiresIn;
         if($this->isCache){
             $cache = $this->key . '_access_token';
-            Tools::setCache($cache, $accessToken, $expiresIn);
+            Tools::setCache($cache, $accessToken, $expiresIn - time());
         }
 
     }
@@ -118,7 +121,7 @@ class Douyin
     public function delAccessToken()
     {
         $this->accessToken = '';
-        $this->expiresIn = 7200;
+        $this->expiresIn = time();
         if($this->isCache){
             Tools::delCache($this->key . '_access_token');
         }
