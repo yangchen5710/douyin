@@ -312,6 +312,59 @@ class Douyin
         return $result;
     }
 
+    /**
+     * 创建预约单
+     * @param $params
+     * @return mixed
+     * @throws InvalidResponseException
+     */
+    public function bookCreate($params)
+    {
+        $this->setCurrentMethod(__FUNCTION__, func_get_args());
+        $result = $this->doRequest('post', '/api/apps/trade/v2/book/create_book', ['json' => $params]);
+        return $result;
+    }
+
+    /**
+     * 预约接单结果回调
+     * @param $params
+     * @return mixed
+     * @throws InvalidResponseException
+     */
+    public function bookResultCallback($params)
+    {
+        $this->setCurrentMethod(__FUNCTION__, func_get_args());
+        $result = $this->doRequest('post', '/api/apps/trade/v2/book/book_result_callback', ['json' => $params]);
+        return $result;
+    }
+
+    /**
+     * 商家取消预约
+     * @param $params
+     * @return mixed
+     * @throws InvalidResponseException
+     */
+    public function bookCancelByMerchant($params)
+    {
+        $this->setCurrentMethod(__FUNCTION__, func_get_args());
+        $result = $this->doRequest('post', '/api/apps/trade/v2/book/merchant_cancel_book', ['json' => $params]);
+        return $result;
+    }
+
+    /**
+     * 用户取消预约
+     * @param $params
+     * @return mixed
+     * @throws InvalidResponseException
+     */
+    public function bookCancelByUser($params)
+    {
+        $this->setCurrentMethod(__FUNCTION__, func_get_args());
+        $result = $this->doRequest('post', '/api/apps/trade/v2/book/user_cancel_book', ['json' => $params]);
+        return $result;
+    }
+
+
     private function setCurrentMethod($method, $arguments = [])
     {
         $this->currentMethod = ['method' => $method, 'arguments' => $arguments];
