@@ -68,7 +68,7 @@ class Douyin
             $cacheInfo = Tools::getCache($cache);
             if (!empty($cacheInfo)) {
                 $this->accessToken = $cacheInfo[0] ?? '';
-                $this->expiresIn = $cacheInfo[1] ?? 7200;
+                $this->expiresIn = $cacheInfo[1] ?? time();
                 return ['access_token' => $this->accessToken, 'expires_in' => $this->expiresIn];
             }
         }
